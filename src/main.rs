@@ -62,7 +62,7 @@ async fn main() -> Result<(), ExitFailure> {
     println!("Buscamos el pronóstico a 1, 2 o 3 días?");
     let dias = get_number_from_user();
     if let Ok(dias_number) = dias {
-        if dias_number >= 1 && dias_number <= 3 {
+        if (1..=3).contains(&dias_number) {
             println!("Buscando el pronóstico a {} día/s...", dias_number);
             weather_data = get_data(dias_number).await?;
             for weather_item in &weather_data {
