@@ -67,7 +67,7 @@ mod tests {
     use super::*;
     use structs::WeatherDetails;
     #[test]
-    fn test_handle_orders() {
+    fn test_get_provinces() {
         let weather_data = vec![
                 WeatherItem {
                     _id: "609d947e818e15902c74d831".to_string(),
