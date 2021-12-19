@@ -12,12 +12,12 @@ mod structs;
 use ask_for_city::ask_for_city;
 use ask_for_day::ask_for_day;
 use ask_for_province::ask_for_province;
-use constants::{API_ERROR_MESSAGE, BYE};
+use constants::{API_ERROR_MESSAGE, EXIT_MESSAGE};
 use get_data::get_data;
 use structs::WeatherItem;
 
-fn close() {
-    println!("{}", BYE)
+fn print_exit_message() {
+    println!("{}", EXIT_MESSAGE)
 }
 
 fn get_provinces(weather_data: &[WeatherItem]) -> Vec<String> {
@@ -38,29 +38,26 @@ fn run_province(weather_data: Vec<WeatherItem>) -> Option<()> {
     }
 }
 
-async fn run(days: i32) -> Option<()> {
-    match get_data(days).await {
-        Ok(weather_data) => run_province(weather_data),
-        _ => {
-            println!("{}", API_ERROR_MESSAGE);
-            None
+async fn run() -> Option<()> {
+    // We ask to the user for the day
+    // If we got a day, we run the rest of the program
+    if let Some(day) = ask_for_day() {
+        match get_data(day).await {
+            Ok(weather_data) => run_province(weather_data),
+            _ => {
+                println!("{}", API_ERROR_MESSAGE);
+                None
+            }
         }
+    } else {
+        None
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), ExitFailure> {
-    // We ask to the user for the day
-    // If we got a day, we run the rest of the program
-    // If we didn't get a day, or the result of runing the program is None,
-    // we show a "close the program" message.
-    match ask_for_day() {
-        Some(day) => {
-            if run(day).await.is_none() {
-                close()
-            }
-        }
-        _ => close(),
+    if run().await.is_none() {
+        print_exit_message()
     }
     Ok(())
 }

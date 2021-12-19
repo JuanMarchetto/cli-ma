@@ -16,5 +16,5 @@ pub const AFTERNON: &str = "Tarde:";
 pub const SELECT_CITY: &str = "Seleccione una ciudad (ingrese el número):";
 pub const CITY_ERROR_MESSAGE: &str =
     "Por favor ingrese un número de ciudad valido. Para salir presione q";
-pub const BYE: &str = "Cerrando el programa...";
+pub const EXIT_MESSAGE: &str = "Cerrando el programa...";
 pub const API_ERROR_MESSAGE: &str = "No se pudo obtener la información del clima";
