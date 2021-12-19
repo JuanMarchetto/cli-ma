@@ -4,10 +4,10 @@ pub const DAYS_ERROR_MESSAGE: &str =
     "Por favor ingrese un número entre 1 y 3. Para salir presione q";
 pub const SEARCHING_FORECAST_DAYS: &str = "Buscando el pronóstico a ";
 pub const DAYS: &str = " día/s...";
-pub const SELECT_PROVINCIA: &str = "Seleccione una provincia (ingrese el número):";
-pub const PROVINCIA_ERROR_MESSAGE: &str =
+pub const SELECT_PROVINCE: &str = "Seleccione una provincia (ingrese el número):";
+pub const PROVINCE_ERROR_MESSAGE: &str =
     "Por favor ingrese un número de provincia valido. Para salir presione q";
-pub const PROVINCIA_SELECTED: &str = "Provincia seleccionada: ";
+pub const PROVINCE_SELECTED: &str = "Provincia seleccionada: ";
 pub const CITY_SELECTED: &str = "Ciudad seleccionada: ";
 pub const MORNING: &str = "Mañana:";
 pub const TEMPERATURE: &str = "Temperatura:";
