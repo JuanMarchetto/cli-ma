@@ -17,14 +17,7 @@ use get_data::get_data;
 use structs::WeatherItem;
 
 fn close() {
-    println!("{}", BYE);
-}
-
-fn run_city(cities: Vec<String>, weather_data: Vec<WeatherItem>) {
-    if ask_for_city(cities, weather_data).is_some() {
-    } else {
-        close()
-    }
+    println!("{}", BYE)
 }
 
 fn get_provinces(weather_data: &[WeatherItem]) -> Vec<String> {
@@ -37,17 +30,22 @@ fn get_provinces(weather_data: &[WeatherItem]) -> Vec<String> {
     provinces
 }
 
-async fn run(days: i32) {
-    if let Ok(weather_data) = get_data(days).await {
-        let provinces = get_provinces(&weather_data);
-        let cities = ask_for_province(provinces, &weather_data);
-        if let Some(cities) = cities {
-            run_city(cities, weather_data);
-        } else {
-            close()
+fn run_province(weather_data: Vec<WeatherItem>) -> Option<()> {
+    let provinces = get_provinces(&weather_data);
+    let cities = ask_for_province(provinces, &weather_data);
+    match cities {
+        Some(cities) => ask_for_city(cities, weather_data),
+        _ => None,
+    }
+}
+
+async fn run(days: i32) -> Option<()> {
+    match get_data(days).await {
+        Ok(weather_data) => run_province(weather_data),
+        _ => {
+            println!("{}", API_ERROR_MESSAGE);
+            None
         }
-    } else {
-        println!("{}", API_ERROR_MESSAGE);
     }
 }
 
@@ -56,10 +54,13 @@ async fn main() -> Result<(), ExitFailure> {
     // We ask to the user for the day
     // If we got a day, we run the rest of the program
     // Else we exit the program
-    let days = ask_for_day();
-    match days {
-        Some(days) => run(days).await,
-        _ => close(),
+    let user_exit = if let Some(day) = ask_for_day() {
+        run(day).await.is_none()
+    } else {
+        true
+    };
+    if user_exit {
+        close();
     }
     Ok(())
 }
