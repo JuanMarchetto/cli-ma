@@ -21,13 +21,12 @@ fn close() {
 }
 
 fn get_provinces(weather_data: &[WeatherItem]) -> Vec<String> {
-    let provinces: Vec<String> = weather_data.iter().fold(Vec::new(), |mut acc, item| {
+    weather_data.iter().fold(Vec::new(), |mut acc, item| {
         if !acc.contains(&item.province) {
             acc.push(item.province.clone());
         }
         acc
-    });
-    provinces
+    })
 }
 
 fn run_province(weather_data: Vec<WeatherItem>) -> Option<()> {
