@@ -3,7 +3,7 @@ use reqwest::Url;
 use serde_derive::{Deserialize, Serialize};
 use std::io::{stdin, stdout, Write};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 struct WeatherDetails {
     day: u8,
     morning_temp: i32,
@@ -14,7 +14,7 @@ struct WeatherDetails {
     afternoon_desc: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 struct WeatherItem {
     _id: String,
     dist: f64,
@@ -29,23 +29,26 @@ struct WeatherItem {
     weather: WeatherDetails,
 }
 
-fn get_number_from_user() -> Result<i32, &'static str> {
-    print!("> ");
-    let _ = stdout().flush();
-    let mut user_input = String::new();
-    stdin()
-        .read_line(&mut user_input)
-        .expect("Error al leer la entrada del usuario");
-    if let Ok(number_from_input) = user_input.trim().parse::<i32>() {
-        Ok(number_from_input)
-    } else {
-        Err("El Valor ingresado no es un número")
+fn get_number_from_user(min: i32, max: i32, error_message: &str) -> Option<i32> {
+    loop {
+        let mut user_input = String::new();
+        print!("> ");
+        let _ = stdout().flush();
+        stdin().read_line(&mut user_input).expect(error_message);
+        if user_input.trim() == "q" {
+            break None;
+        }
+        if let Ok(number_from_input) = user_input.trim().parse::<i32>() {
+            if validate(number_from_input, min, max) {
+                break Some(number_from_input);
+            }
+        }
+        println!("{}", error_message);
     }
 }
 
 async fn get_data(dia: i32) -> Result<Vec<WeatherItem>, reqwest::Error> {
     let url = format!("https://ws.smn.gob.ar/map_items/forecast/{}", dia);
-
     let parsed_url = Url::parse(&*url).unwrap();
     reqwest::get(parsed_url)
         .await
@@ -54,88 +57,105 @@ async fn get_data(dia: i32) -> Result<Vec<WeatherItem>, reqwest::Error> {
         .await
 }
 
-#[tokio::main]
-async fn main() -> Result<(), ExitFailure> {
-    let mut provincias: Vec<String> = Vec::new();
-    let mut ciudades: Vec<String> = Vec::new();
-    let mut weather_data: Vec<WeatherItem> = Vec::new();
+fn ask_for_day() -> Option<i32> {
     println!("Buscamos el pronóstico a 1, 2 o 3 días?");
-    let dias = get_number_from_user();
-    if let Ok(dias_number) = dias {
-        if (1..=3).contains(&dias_number) {
-            println!("Buscando el pronóstico a {} día/s...", dias_number);
-            weather_data = get_data(dias_number).await?;
-            for weather_item in &weather_data {
-                let found = provincias
-                    .iter()
-                    .find(|provincia| weather_item.province == **provincia);
-                if found.is_none() {
-                    provincias.push(weather_item.province.clone());
-                }
-            }
-        } else {
-            panic!("El valor ingresado no es válido");
-        }
+    let dias = get_number_from_user(
+        1,
+        3,
+        "Por favor ingrese un número entre 1 y 3. Para salir presione q",
+    );
+    if let Some(dias_number) = dias {
+        println!("Buscando el pronóstico a {} día/s...", dias_number);
+        Some(dias_number)
     } else {
-        panic!("{}", dias.unwrap_err());
+        None
     }
+}
 
+fn validate(dia: i32, min: i32, max: i32) -> bool {
+    (min..=max).contains(&dia)
+}
+
+fn get_city(provincias: Vec<String>, weather_data: &Vec<WeatherItem>) -> Option<Vec<String>> {
     println!("Seleccione una provincia (ingrese el número):");
     for (index, provincia) in provincias.iter().enumerate() {
         println!("[{}] {}", index, provincia);
     }
-    let provincia = get_number_from_user();
-    if let Ok(provincia_number) = provincia {
-        if provincia_number >= 0 && provincia_number < provincias.len() as i32 {
-            let provincia_selected = provincias[provincia_number as usize].clone();
-            println!("Seleccionada la provincia: {}", provincia_selected);
-            for weather_item in &weather_data {
-                if weather_item.province == provincia_selected {
-                    let found = ciudades.iter().find(|ciudad| weather_item.name == **ciudad);
-                    if found.is_none() {
-                        ciudades.push(weather_item.name.clone());
-                    }
-                }
-            }
-            println!("Provincia seleccionada: {}...", provincia_selected);
-        } else {
-            panic!("El valor ingresado no es válido");
-        }
-        println!("provincia: {}", provincia_number);
-    }
+    let provincia = get_number_from_user(
+        0,
+        provincias.len() as i32,
+        "Por favor ingrese un número de provincia valido. Para salir presione q",
+    );
+    if let Some(provincia_number) = provincia {
+        let provincia_selected = provincias[provincia_number as usize].clone();
+        println!("Seleccionada la provincia: {}", provincia_selected);
 
+        println!("Provincia seleccionada: {}...", provincia_selected);
+        Some(weather_data.iter().fold(Vec::new(), |mut acc, item| {
+            if item.province == provincia_selected && !acc.contains(&item.name) {
+                acc.push(item.name.clone());
+            }
+            acc
+        }))
+    } else {
+        None
+    }
+}
+
+fn show_weather(cities: Vec<String>, city_number: i32, weather_data: Vec<WeatherItem>) {
+    let city_selected = cities[city_number as usize].clone();
+    println!("Ciudad seleccionada: {}", city_selected);
+    println!();
+    println!("Mañana:");
+    println!(
+        "Temperatura: {}°C",
+        &weather_data[city_number as usize].weather.morning_temp
+    );
+    println!(
+        "Pronóstico: {}",
+        &weather_data[city_number as usize].weather.morning_desc
+    );
+    println!();
+    println!("Tarde:");
+    println!(
+        "Temperatura: {}°C",
+        weather_data[city_number as usize].weather.afternoon_temp
+    );
+    println!(
+        "Pronóstico: {}",
+        weather_data[city_number as usize].weather.afternoon_desc
+    );
+}
+
+
+fn ask_for_city(cities: Vec<String>, weather_data: Vec<WeatherItem>) {
     println!("Seleccione una ciudad (ingrese el número):");
-    for (index, ciudad) in ciudades.iter().enumerate() {
-        println!("[{}] {}", index, ciudad);
+    for (index, city) in cities.iter().enumerate() {
+        println!("[{}] {}", index, city);
     }
-    let ciudad = get_number_from_user();
-    if let Ok(ciudad_number) = ciudad {
-        if ciudad_number >= 0 && ciudad_number < ciudades.len() as i32 {
-            let ciudad_selected = ciudades[ciudad_number as usize].clone();
-            println!("Ciudad seleccionada: {}", ciudad_selected);
-            println!();
-            println!("Mañana:");
-            println!(
-                "Temperatura: {}°C",
-                &weather_data[ciudad_number as usize].weather.morning_temp
-            );
-            println!(
-                "Pronóstico: {}",
-                &weather_data[ciudad_number as usize].weather.morning_desc
-            );
-            println!();
-            println!("Tarde:");
-            println!(
-                "Temperatura: {}°C",
-                weather_data[ciudad_number as usize].weather.afternoon_temp
-            );
-            println!(
-                "Pronóstico: {}",
-                weather_data[ciudad_number as usize].weather.afternoon_desc
-            );
-        } else {
-            panic!("El valor ingresado no es válido");
+    let city = get_number_from_user(
+        0,
+        cities.len() as i32,
+        "Por favor ingrese un número de provincia valido. Para salir presione q",
+    );
+    if let Some(city_number) = city {
+        show_weather(cities, city_number, weather_data);
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), ExitFailure> {
+    let weather_data = get_data(ask_for_day().unwrap()).await?;
+
+    let provincias: Vec<String> = weather_data.iter().fold(Vec::new(), |mut acc, item| {
+        if !acc.contains(&item.province) {
+            acc.push(item.province.clone());
         }
-    }
+        acc
+    });
+    let cities = get_city(provincias, &weather_data).unwrap();
+
+    ask_for_city(cities, weather_data);
+
     Ok(())
 }
