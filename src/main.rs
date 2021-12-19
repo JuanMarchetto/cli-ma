@@ -53,14 +53,15 @@ async fn run(days: i32) -> Option<()> {
 async fn main() -> Result<(), ExitFailure> {
     // We ask to the user for the day
     // If we got a day, we run the rest of the program
-    // Else we exit the program
-    let user_exit = if let Some(day) = ask_for_day() {
-        run(day).await.is_none()
-    } else {
-        true
-    };
-    if user_exit {
-        close();
+    // If we didn't get a day, or the result of runing the program is None,
+    // we show a "close the program" message.
+    match ask_for_day() {
+        Some(day) => {
+            if run(day).await.is_none() {
+                close()
+            }
+        }
+        _ => close(),
     }
     Ok(())
 }
