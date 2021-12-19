@@ -76,7 +76,7 @@ fn validate(dia: i32, min: i32, max: i32) -> bool {
     (min..=max).contains(&dia)
 }
 
-fn get_city(provincias: Vec<String>, weather_data: &Vec<WeatherItem>) -> Option<Vec<String>> {
+fn get_city(provincias: Vec<String>, weather_data: &[WeatherItem]) -> Option<Vec<String>> {
     println!("Seleccione una provincia (ingrese el número):");
     for (index, provincia) in provincias.iter().enumerate() {
         println!("[{}] {}", index, provincia);
