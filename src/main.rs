@@ -127,7 +127,6 @@ fn show_weather(cities: Vec<String>, city_number: i32, weather_data: Vec<Weather
     );
 }
 
-
 fn ask_for_city(cities: Vec<String>, weather_data: Vec<WeatherItem>) {
     println!("Seleccione una ciudad (ingrese el número):");
     for (index, city) in cities.iter().enumerate() {
