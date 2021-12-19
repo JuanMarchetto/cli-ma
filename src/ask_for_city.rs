@@ -10,7 +10,8 @@ pub fn ask_for_city(cities: Vec<String>, weather_data: Vec<WeatherItem>) -> Opti
     }
     let city = get_number_from_user(0, cities.len() as i32, CITY_ERROR_MESSAGE);
     if let Some(city_number) = city {
-        Some(show_weather(cities, city_number, weather_data))
+        show_weather(cities, city_number, weather_data);
+        Some(())
     } else {
         None
     }

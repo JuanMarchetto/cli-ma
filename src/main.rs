@@ -21,14 +21,13 @@ fn close() {
 }
 
 fn run_city(cities: Vec<String>, weather_data: Vec<WeatherItem>) {
-    if let Some(_) = ask_for_city(cities, weather_data) {
-        ()
+    if ask_for_city(cities, weather_data).is_some() {
     } else {
         close()
     }
 }
 
-fn get_provinces(weather_data: &Vec<WeatherItem>) -> Vec<String> {
+fn get_provinces(weather_data: &[WeatherItem]) -> Vec<String> {
     let provinces: Vec<String> = weather_data.iter().fold(Vec::new(), |mut acc, item| {
         if !acc.contains(&item.province) {
             acc.push(item.province.clone());
