@@ -2,7 +2,10 @@ use crate::constants::{PROVINCIA_ERROR_MESSAGE, PROVINCIA_SELECTED, SELECT_PROVI
 use crate::helpers::get_number_from_user;
 use crate::structs::WeatherItem;
 
-pub fn get_city(provincias: Vec<String>, weather_data: &[WeatherItem]) -> Option<Vec<String>> {
+pub fn ask_for_provincia(
+    provincias: Vec<String>,
+    weather_data: &[WeatherItem],
+) -> Option<Vec<String>> {
     println!("{}", SELECT_PROVINCIA);
     for (index, provincia) in provincias.iter().enumerate() {
         println!("[{}] {}", index, provincia);
